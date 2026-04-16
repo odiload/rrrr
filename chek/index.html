@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chek</title>
+
+<style>
+body{
+    background:#f2f2f2;
+    font-family:-apple-system, BlinkMacSystemFont, sans-serif;
+    text-align:center;
+}
+
+.container{
+    width:360px;
+    margin:20px auto;
+    background:white;
+    border-radius:20px;
+    padding:15px;
+}
+
+/* INPUT */
+input{
+    width:90%;
+    padding:10px;
+    margin:5px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+/* BUTTON */
+button{
+    padding:10px 15px;
+    margin-top:10px;
+    border:none;
+    background:#16a34a;
+    color:white;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+/* TIME */
+.top-time{
+    text-align:right;
+    font-size:12px;
+    color:gray;
+    margin-bottom:10px;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* LOGO */
+.logo{
+    width:42px;
+    height:42px;
+    background:#16a34a;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+/* ✅ LOGO FIX */
+.logo img{
+    width:26px;
+    height:26px;
+    object-fit:contain;
+}
+
+/* TITLE */
+.title b{
+    font-size:15px;
+}
+
+.success{
+    color:#16a34a;
+    font-size:13px;
+}
+
+/* CHECK ICON */
+.check{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:#16a34a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:16px;
+}
+
+/* ROW */
+.row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+}
+
+.total{
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+    margin-top:12px;
+    font-size:17px;
+}
+
+.green{
+    color:#16a34a;
+}
+</style>
+</head>
+
+<body>
+
+<h3>Chek Generator</h3>
+
+<input id="sender" placeholder="Jo'natuvchi">
+<input id="senderCard" placeholder="Karta (faqat raqam)">
+<input id="receiver" placeholder="Qabul qiluvchi">
+<input id="receiverCard" placeholder="Karta (faqat raqam)">
+<input id="amount" placeholder="Summa">
+
+<br>
+<button onclick="generate()">Yaratish</button>
+<button onclick="downloadPDF()">PDF yuklab olish</button>
+
+<div class="container" id="chek">
+
+<div class="top-time" id="topTime"></div>
+
+<div class="header">
+    <div style="display:flex; gap:10px; align-items:center;">
+        <div class="logo">
+            <img src="logo (2).jpg" alt="">
+        </div>
+        <div class="title">
+            <b>Ipak Yo‘li bank</b><br>
+            <span class="success">Muvaffaqiyatli</span>
+        </div>
+    </div>
+
+    <div class="check">✓</div>
+</div>
+
+<div class="row"><div>ID</div><div id="tid"></div></div>
+<div class="row"><div>Sana</div><div id="date"></div></div>
+<div class="row"><div>Debit</div><div id="debit"></div></div>
+<div class="row"><div>Kredit</div><div id="credit"></div></div>
+<div class="row"><div>Jo'natuvchi</div><div id="s"></div></div>
+<div class="row"><div>Qabul qiluvchi</div><div id="r"></div></div>
+<div class="row"><div>Summa</div><div id="a"></div></div>
+
+<div class="total">
+    <div>Jami</div>
+    <div class="green" id="t"></div>
+</div>
+
+</div>
+
+<!-- PDF LIBRARIES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+/* faqat raqam */
+document.getElementById("senderCard").addEventListener("input", e=>{
+    e.target.value = e.target.value.replace(/\D/g,'');
+});
+
+document.getElementById("receiverCard").addEventListener("input", e=>{
+    e.target.value = e.target.value.replace(/\D/g,'');
+});
+
+/* mask */
+function mask(card){
+    return card.slice(0,4)+"****"+card.slice(-4);
+}
+
+/* ID */
+function id(){
+    return "UZB-"+Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+/* generate */
+function generate(){
+
+    let now = new Date();
+
+    document.getElementById("topTime").innerText =
+        now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) +
+        " " + now.toLocaleDateString();
+
+    document.getElementById("date").innerText = now.toLocaleString();
+
+    document.getElementById("tid").innerText = id();
+
+    document.getElementById("debit").innerText =
+        mask(document.getElementById("senderCard").value);
+
+    document.getElementById("credit").innerText =
+        mask(document.getElementById("receiverCard").value);
+
+    document.getElementById("s").innerText =
+        document.getElementById("sender").value;
+
+    document.getElementById("r").innerText =
+        document.getElementById("receiver").value;
+
+    let amount = document.getElementById("amount").value;
+
+    document.getElementById("a").innerText = amount + " UZS";
+    document.getElementById("t").innerText = amount + " UZS";
+}
+
+/* ✅ PDF FUNCTION */
+async function downloadPDF(){
+
+    const { jsPDF } = window.jspdf;
+
+    const element = document.getElementById("chek");
+
+    await new Promise(r => setTimeout(r, 300));
+
+    const canvas = await html2canvas(element,{
+        scale:3,
+        useCORS:true
+    });
+
+    const img = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p","mm","a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = canvas.height * pageWidth / canvas.width;
+
+    pdf.addImage(img,"PNG",0,10,pageWidth,imgHeight);
+
+    pdf.save("chek.pdf");
+}
+</script>
+
+</body>
+</html>
